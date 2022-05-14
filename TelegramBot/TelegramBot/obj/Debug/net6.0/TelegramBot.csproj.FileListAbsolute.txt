@@ -17,3 +17,5 @@ D:\Telegram_Bot\Telegram_Bot\TelegramBot\TelegramBot\obj\Debug\net6.0\TelegramBo
 D:\Telegram_Bot\Telegram_Bot\TelegramBot\TelegramBot\obj\Debug\net6.0\TelegramBot.genruntimeconfig.cache
 D:\Telegram_Bot\Telegram_Bot\TelegramBot\TelegramBot\obj\Debug\net6.0\ref\TelegramBot.dll
 D:\Telegram_Bot\Telegram_Bot\TelegramBot\TelegramBot\bin\Debug\net6.0\Telegram.Bot.Extensions.Polling.dll
+D:\Telegram_Bot\Telegram_Bot\TelegramBot\TelegramBot\bin\Debug\net6.0\Elasticsearch.Net.dll
+D:\Telegram_Bot\Telegram_Bot\TelegramBot\TelegramBot\bin\Debug\net6.0\Nest.dll

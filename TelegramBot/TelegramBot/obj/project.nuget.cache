@@ -1,10 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "xXcHHLS6R/KjgosggvQmtfo5+EOBVeWARkwQD+Ie1re700q72oC/x02NxX8o4iiTht3cJl8Es/Ch68314d55Xw==",
+  "dgSpecHash": "POcnjH63Lp1TF+NgB12pg53AY4wWnI1zXbpVt56JJPkSnfh//blYbus5nstEUQnK7vAKCiW9Tv4PHd2KJPDo5w==",
   "success": true,
   "projectFilePath": "D:\\Telegram_Bot\\Telegram_Bot\\TelegramBot\\TelegramBot\\TelegramBot.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\lorda\\.nuget\\packages\\elasticsearch.net\\7.17.1\\elasticsearch.net.7.17.1.nupkg.sha512",
+    "C:\\Users\\lorda\\.nuget\\packages\\microsoft.csharp\\4.6.0\\microsoft.csharp.4.6.0.nupkg.sha512",
+    "C:\\Users\\lorda\\.nuget\\packages\\nest\\7.17.1\\nest.7.17.1.nupkg.sha512",
     "C:\\Users\\lorda\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\lorda\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
+    "C:\\Users\\lorda\\.nuget\\packages\\system.diagnostics.diagnosticsource\\5.0.0\\system.diagnostics.diagnosticsource.5.0.0.nupkg.sha512",
     "C:\\Users\\lorda\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512",
     "C:\\Users\\lorda\\.nuget\\packages\\telegram.bot\\17.0.0\\telegram.bot.17.0.0.nupkg.sha512",
     "C:\\Users\\lorda\\.nuget\\packages\\telegram.bot.extensions.polling\\1.0.2\\telegram.bot.extensions.polling.1.0.2.nupkg.sha512"
