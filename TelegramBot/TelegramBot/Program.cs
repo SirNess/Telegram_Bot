@@ -73,7 +73,7 @@ namespace TelegramBotExperiments
                     Console.WriteLine($"Возвращено '{messageText}' сообщение в чат {chatId}."); //Эхо сообщения
                     sentMessage = await botClient.SendTextMessageAsync(
                         chatId: chatId,
-                        text: "Вы сказали:" + messageText,
+                        text: "Вы сказали: " + messageText,
                         cancellationToken: cancellationToken);
                 
             }
