@@ -27,98 +27,105 @@ namespace TelegramBotExperiments
         {
             string test = Newtonsoft.Json.JsonConvert.SerializeObject(update);
             Console.WriteLine(test);
-            EchoText(botClient, update, cancellationToken);
-            SavePhoto(botClient, update, cancellationToken);
-            SaveDocument(botClient, update,cancellationToken);
-            SaveAudio(botClient, update, cancellationToken);
-            SaveVoice(botClient, update, cancellationToken);
+            Text(botClient, update, cancellationToken);
+            await SavePhoto(botClient, update, cancellationToken);
+            await SaveDocument(botClient, update,cancellationToken);
+            await SaveAudio(botClient, update, cancellationToken);
+            await SaveVoice(botClient, update, cancellationToken);
         }
         /// <summary>
-        /// Метод эхо отправление текста
+        /// Метод работы с текстом и командами
         /// </summary>
         /// <param name="botClient"></param>
         /// <param name="update"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async static Task EchoText(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        async static Task Text(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Message!.Type == MessageType.Text)
             {
                 var chatId = update.Message.Chat.Id;
                 var messageText = update.Message.Text;
                 Message sentMessage;
-                if (messageText == "/фото")
+                if (messageText == "/start" ^ messageText ==  "/Start")
                 {
-                    WebClient web = new WebClient();
-                    sentMessage = await botClient.SendPhotoAsync
+                    sentMessage = await botClient.SendTextMessageAsync
                         (
                         chatId: chatId,
-                        photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile("https://avatarko.ru/img/kartinka/33/multfilm_lyagushka_32117.jpg")
+                        text: $"Добро пожаловать.\n Я умею сохранять твои фотографии, аудио, голосовые сообщения, документы" +
+                        $", а ещё я очень люблю повторять за людьми" +
+                        $"\nДля того чтобы я их сохранил, просто отправь их мне.\nМои команды: \n1) /Файлы - показывает все" +
+                        $"сохраненные мной файлы.\n2) /Скачать \"Имя файла\" - я отправлю тебе файл, который ты сохранял. ",
+                        cancellationToken: cancellationToken
                         );
                     return;
                 }
-                if (messageText == "/Файлы")
+                if ($"{messageText.Split(' ')[0]}" == "/Скачать") //Если первое слово в сообщение /Скачать запускает метод отправки файла пользователю.
                 {
-                    info(botClient, update, cancellationToken);
-                    sentMessage = await botClient.SendTextMessageAsync(
-                    chatId: chatId,
-                    text: "Чтобы скачать файл отправьте его название",
-                    cancellationToken: cancellationToken);
+                    Upload(botClient, update, cancellationToken);
                     return;
                 }
-
-                Console.WriteLine($"Возвращено '{messageText}' сообщение в чат {chatId}.");
-                sentMessage = await botClient.SendTextMessageAsync(
-                    chatId: chatId,
-                    text: "Вы сказали:\n" + messageText,
-                    cancellationToken: cancellationToken);
+                if (messageText == "/Файлы") //Команда показывающая все сохраненные пользователем файлы
+                {
+                    info(botClient, update, cancellationToken);
+                    return;
+                }
+                    Console.WriteLine($"Возвращено '{messageText}' сообщение в чат {chatId}."); //Эхо сообщения
+                    sentMessage = await botClient.SendTextMessageAsync(
+                        chatId: chatId,
+                        text: "Вы сказали:" + messageText,
+                        cancellationToken: cancellationToken);
+                
             }
         }
+        /// <summary>
+        /// Отправка файлов пользователю
+        /// </summary>
+        /// <returns></returns>
+        async static Task Upload(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        {
+            string directory = Convert.ToString(update.Message.From.FirstName);
+            string[] file = Directory.GetFiles(directory);
+            foreach (string fileItem in file)
+            {
+                if (update.Message.Text == $"/Скачать {fileItem.Split('\\')[1]}")
+                {
+                    string path = $@".\{update.Message.From.FirstName}\{update.Message.Text.Split('/', ' ')[2]}";//Путь к файлу
+                    var chatId = update.Message.Chat.Id;
+                    string filename = update.Message.Text.Split('/', ' ')[2]; // Имя файла
+                    await using Stream stream = System.IO.File.OpenRead($"{path}");
+                    Message message = await botClient.SendDocumentAsync //Отправка файла пользователю
+                        (
+                        chatId: chatId,
+                        document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename),
+                        cancellationToken: cancellationToken
+                        );
+                }
+            }
+            
+        }
+        /// <summary>
+        /// Метод для получения информации о загруженных файлах
+        /// </summary>
+        /// <param name="botClient"></param>
+        /// <param name="update"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         async static Task info(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            string directory = Convert.ToString(update.Message.From.FirstName);          
-            string[] photo = Directory.GetFiles($@"{directory}\Photo");
-            string[] audio = Directory.GetFiles($@"{directory}\Audio");
-            string[] document = Directory.GetFiles($@"{directory}\Document");
-            string[] voice = Directory.GetFiles($@"{directory}\Voice");
+            string directory = Convert.ToString(update.Message.From.FirstName); //Директория хранения файлов    
+            string[] file = Directory.GetFiles($@"{directory}"); //Наименования файлов в директории 
             var chatId = update.Message.Chat.Id;
-            foreach (var item in photo)
+            foreach (var item in file) // Отправляем наименование файлов пользователю
             {
-                string text = ($"/{item.Split('\\')[2]}");
+                string text = item.Split('\\')[1];
                 Message message = await botClient.SendTextMessageAsync
                 (
                 chatId: chatId,
-                text: text
+                text: text,
+                cancellationToken: cancellationToken
                 );
-            }
-            foreach (var item in audio)
-            {
-                string text = item.Split('\\')[2];
-                Message message = await botClient.SendTextMessageAsync
-                (
-                chatId: chatId,
-                text: text
-                );
-            }
-            foreach (var item in document)
-            {
-                string text = item.Split('\\')[2];
-                Message message = await botClient.SendTextMessageAsync
-                (
-                chatId: chatId,
-                text: text
-                );
-            }
-            foreach (var item in voice)
-            {
-                string text = item.Split('\\')[2];
-                Message message = await botClient.SendTextMessageAsync
-                (
-                chatId: chatId,
-                text: text
-                );
-            }
-
+            }            
         }
         /// <summary>
         /// Метод скачивания фото отправленных боту
@@ -129,25 +136,19 @@ namespace TelegramBotExperiments
         /// <returns></returns>
         async static Task SavePhoto(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.Message!.Type == MessageType.Photo)
+            if (update.Message!.Type == MessageType.Photo) // Проверка, что боту отправили фото
             {
-                string directory = Convert.ToString(update.Message.From.FirstName);
-                Directory.Exists(directory);
-                if (System.IO.File.Exists(directory) == false)
+                string directory = Convert.ToString(update.Message.From.FirstName); //Директория хранения 
+                if (System.IO.File.Exists(directory) == false) //Проверка существования директории
                 {
-                    Directory.CreateDirectory(directory);
-                    if (Directory.Exists($@"{directory}\Photo") == false)
-                    {
-                        Directory.CreateDirectory($@"{directory}\Photo");
-                    }
-
+                    Directory.CreateDirectory(directory);                    
                 }
                 var fileId = update.Message.Photo.Last().FileId;
-                var fileInfo = await botClient.GetFileAsync(fileId);
+                var fileInfo = await botClient.GetFileAsync(fileId); 
                 var filePath = fileInfo.FilePath;
-                string destinationFilePath = $@"{directory}\Photo\{update.Message.Photo.Last().FileUniqueId}.png";
-                await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
-                await botClient.DownloadFileAsync(filePath: filePath, destination: fileStream);
+                string destinationFilePath = $@"{directory}\{update.Message.Photo.Last().FileUniqueId}.png"; //Путь для сохранения фото
+                await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath); 
+                await botClient.DownloadFileAsync(filePath: filePath, destination: fileStream); //Скачивание файла 
             }
         }
         /// <summary>
@@ -159,25 +160,19 @@ namespace TelegramBotExperiments
         /// <returns></returns>
         async static Task SaveDocument(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.Message!.Type == MessageType.Document)
+            if (update.Message!.Type == MessageType.Document) //Проверка, что боту отправили документ
             {
-                string directory = Convert.ToString(update.Message.From.FirstName);
-                Directory.Exists(directory);
-                if (System.IO.File.Exists(directory) == false)
+                string directory = Convert.ToString(update.Message.From.FirstName); //Путь к директории 
+                if (System.IO.File.Exists(directory) == false) //Проверка наличия директории 
                 {
                     Directory.CreateDirectory(directory);
-                    if (Directory.Exists($@"{directory}\Document") == false)
-                    {
-                        Directory.CreateDirectory($@"{directory}\Document");
-                    }
-
                 }
                 var fileId = update.Message.Document.FileId;
-                var fileInfo = await botClient.GetFileAsync(fileId);
+                var fileInfo = await botClient.GetFileAsync(fileId); //Преобразование файоа в объект
                 var filePath = fileInfo.FilePath;
-                string destinationFilePath = $@"{directory}\Document\{update.Message.Document.FileName}";
+                string destinationFilePath = $@"{directory}\{update.Message.Document.FileName}";
                 await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
-                await botClient.DownloadFileAsync(filePath: filePath, destination: fileStream);
+                await botClient.DownloadFileAsync(filePath: filePath, destination: fileStream); //Асинхронно скачиваем файл
             }
         }
         /// <summary>
@@ -189,25 +184,19 @@ namespace TelegramBotExperiments
         /// <returns></returns>
         async static Task SaveAudio(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.Message!.Type == MessageType.Audio)
+            if (update.Message!.Type == MessageType.Audio)//Проверка, что боту было отправлено аудио
             {
-                string directory = Convert.ToString(update.Message.From.FirstName);
-                Directory.Exists(directory);
-                if (System.IO.File.Exists(directory) == false)
+                string directory = Convert.ToString(update.Message.From.FirstName);//Путь к директории
+                if (System.IO.File.Exists(directory) == false) //Проверка наличия директории
                 {
-                    Directory.CreateDirectory(directory);
-                    if (Directory.Exists($@"{directory}\Audio") == false)
-                    {
-                        Directory.CreateDirectory($@"{directory}\Audio");
-                    }
-
+                    Directory.CreateDirectory(directory);                    
                 }
                 var fileId = update.Message.Audio.FileId;
-                var fileInfo = await botClient.GetFileAsync(fileId);
+                var fileInfo = await botClient.GetFileAsync(fileId);//Преобразование аудио в объект
                 var filePath = fileInfo.FilePath;
-                string destinationFilePath = $@"{directory}\Audio\{update.Message.Audio.FileName}";
+                string destinationFilePath = $@"{directory}\{update.Message.Audio.FileName}";
                 await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
-                await botClient.DownloadFileAsync(filePath: filePath, destination: fileStream);
+                await botClient.DownloadFileAsync(filePath: filePath, destination: fileStream);//Асинхронно скачиваем файл
             }
         }
         /// <summary>
@@ -219,24 +208,19 @@ namespace TelegramBotExperiments
         /// <returns></returns>
         async static Task SaveVoice(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.Message!.Type == MessageType.Voice) // Проверка что отправленно боту
+            if (update.Message!.Type == MessageType.Voice) // Проверка, что боту отправленно голосовое сообщение
             {
-                string directory = Convert.ToString(update.Message.From.FirstName);
-                Directory.Exists(directory);
-                if (System.IO.File.Exists(directory) == false)
+                string directory = Convert.ToString(update.Message.From.FirstName);//Путь к директории хранения 
+                if (System.IO.File.Exists(directory) == false) //Проверка наличия директории
                 {
-                    Directory.CreateDirectory(directory);
-                    if (Directory.Exists($@"{directory}\Voice") == false)
-                    {
-                        Directory.CreateDirectory($@"{directory}\Voice");
-                    }
-
+                    Directory.CreateDirectory(directory);                    
                 }
                 var fileId = update.Message.Voice.FileId;
-                var fileInfo = await botClient.GetFileAsync(fileId);
+                var fileInfo = await botClient.GetFileAsync(fileId); //Преобразование голосового сообщения в объект
                 var filePath = fileInfo.FilePath;
-                string destinationFilePath = $@"{directory}\Voice\{update.Message.From.FirstName}-{update.Message.Voice.FileUniqueId}.{update.Message.Voice.MimeType.Split('/')[1]}";
-                await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
+                string destinationFilePath = $@"{directory}\{update.Message.From.FirstName}-
+                                                {update.Message.Voice.FileUniqueId}.{update.Message.Voice.MimeType.Split('/')[1]}";
+                await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);//Асинхронно скачиваем файл
                 await botClient.DownloadFileAsync(filePath: filePath, destination: fileStream);
             }
         }
@@ -255,7 +239,7 @@ namespace TelegramBotExperiments
             var receiverOptions = new ReceiverOptions
             {
                 AllowedUpdates = { }, // Получать все типы обновлений
-            };
+            };            
             bot.StartReceiving(
                 HandleUpdateAsync,
                 HandleErrorAsync,
