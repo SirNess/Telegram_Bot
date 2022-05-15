@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using Telegram.Bot.Types.Enums;
 using System.Net;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TelegramBotExperiments
 {
@@ -29,7 +30,7 @@ namespace TelegramBotExperiments
             Console.WriteLine(test);
             Text(botClient, update, cancellationToken);
             await SavePhoto(botClient, update, cancellationToken);
-            await SaveDocument(botClient, update,cancellationToken);
+            await SaveDocument(botClient, update, cancellationToken);
             await SaveAudio(botClient, update, cancellationToken);
             await SaveVoice(botClient, update, cancellationToken);
         }
@@ -42,18 +43,25 @@ namespace TelegramBotExperiments
         /// <returns></returns>
         async static Task Text(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
+            ReplyKeyboardMarkup replyKeyboard = new(new[]
+            {
+            new KeyboardButton[] {"/start","/Файлы", "/Скачать"}
+            })
+            {
+                ResizeKeyboard = true
+            };
             if (update.Message!.Type == MessageType.Text)
             {
                 var chatId = update.Message.Chat.Id;
                 var messageText = update.Message.Text;
                 Message sentMessage;
-                if (messageText == "/start" ^ messageText ==  "/Start")
+                if (messageText == "/start" ^ messageText == "/Start")
                 {
                     sentMessage = await botClient.SendTextMessageAsync
                         (
                         chatId: chatId,
-                        text: $"Добро пожаловать.\n Я умею сохранять твои фотографии, аудио, голосовые сообщения, документы" +
-                        $"\nДля того чтобы я их сохранил, просто отправь их мне.\nМои команды: \n1) /Файлы - показывает все" +
+                        text: $"Добро пожаловать.\nЯ умею сохранять твои фотографии, аудио, голосовые сообщения, документы" +
+                        $"\nДля того чтобы я их сохранил, просто отправь их мне.\nМои команды: \n1) /Файлы - показывает все " +
                         $"сохраненные мной файлы.\n2) /Скачать \"Имя файла\" - я отправлю тебе файл, который ты сохранял. А ещё я буду повторять твои сообщения",
                         cancellationToken: cancellationToken
                         );
@@ -70,11 +78,11 @@ namespace TelegramBotExperiments
                     return;
                 }
                     Console.WriteLine($"Возвращено '{messageText}' сообщение в чат {chatId}."); //Эхо сообщения
-                    sentMessage = await botClient.SendTextMessageAsync(
-                        chatId: chatId,
-                        text: "Вы сказали: " + messageText,
-                        cancellationToken: cancellationToken);
-                
+                sentMessage = await botClient.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: "Вы сказали: " + messageText,
+                    cancellationToken: cancellationToken);
+
             }
         }
         /// <summary>
